@@ -24,6 +24,14 @@ class ViewController: UIViewController {
         
         circle.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(dragCircle)))
         view.addSubview(circle)
+        
+        circleAnimator = UIViewPropertyAnimator(duration: 1.0, curve: .linear, animations: { 
+            circle.transform = CGAffineTransform(scaleX: 3.0, y: 3.0)
+        })
+        
+        circleAnimator?.addAnimations({
+            circle.backgroundColor = UIColor.blue
+        }, delayFactor: 0.75)
     }
     
     func dragCircle(gesture: UIPanGestureRecognizer) {
@@ -31,25 +39,12 @@ class ViewController: UIViewController {
         
         switch gesture.state {
         case .began:
-            if let animator = circleAnimator, animator.isRunning {
-                animator.stopAnimation(false)
-            }
-            
             circleCenter = target.center
         case .changed:
             let translation = gesture.translation(in: view)
             target.center = CGPoint(x: circleCenter.x + translation.x, y: circleCenter.y + translation.y)
-        case .ended:
-            let velocity = gesture.velocity(in: target)
-            let vector = CGVector(dx: velocity.x / 500, dy: velocity.y / 500)
-            let params = UISpringTimingParameters(mass: 2.5, stiffness: 70, damping: 55, initialVelocity: vector)
-            circleAnimator = UIViewPropertyAnimator(duration: 0, timingParameters: params)
             
-            circleAnimator?.addAnimations {
-                target.center = self.view.center
-            }
-            
-            circleAnimator?.startAnimation()
+            circleAnimator?.fractionComplete = target.center.y / view.frame.height
         default:
             break
         }
